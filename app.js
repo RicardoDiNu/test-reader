@@ -1,7 +1,8 @@
 const state = {
   quiz: null,
   currentIndex: 0,
-  answers: []
+  answers: [],
+  isReviewMode: false
 };
 
 const screens = {
@@ -11,12 +12,17 @@ const screens = {
 };
 
 const fileInput = document.getElementById("file-input");
+
 const openFileBtn = document.getElementById("open-file-btn");
 const startOpenFileBtn = document.getElementById("start-open-file-btn");
 const newQuizBtn = document.getElementById("new-quiz-btn");
 
+const helpBtn = document.getElementById("help-btn");
+const aboutBtn = document.getElementById("about-btn");
+
 const quizTitle = document.getElementById("quiz-title");
 const questionCounter = document.getElementById("question-counter");
+const questionMapBtn = document.getElementById("question-map-btn");
 const questionStatement = document.getElementById("question-statement");
 const optionsContainer = document.getElementById("options-container");
 
@@ -34,14 +40,13 @@ const reviewBtn = document.getElementById("review-btn");
 const repeatBtn = document.getElementById("repeat-btn");
 
 const appModal = document.getElementById("app-modal");
-const modalMessage = document.getElementById("modal-message");
-const modalCloseBtn = document.getElementById("modal-close-btn");
-
-const helpBtn = document.getElementById("help-btn");
-const aboutBtn = document.getElementById("about-btn");
-
 const modalTitle = document.getElementById("modal-title");
 const modalContent = document.getElementById("modal-content");
+const modalCloseBtn = document.getElementById("modal-close-btn");
+
+/* =========================
+   Eventos
+========================= */
 
 openFileBtn.addEventListener("click", () => fileInput.click());
 startOpenFileBtn.addEventListener("click", () => fileInput.click());
@@ -54,6 +59,7 @@ nextBtn.addEventListener("click", goToNextQuestion);
 
 reviewBtn.addEventListener("click", () => {
   state.currentIndex = 0;
+  state.isReviewMode = true;
   showScreen("quiz");
   renderQuestion();
 });
@@ -61,18 +67,39 @@ reviewBtn.addEventListener("click", () => {
 repeatBtn.addEventListener("click", () => {
   state.currentIndex = 0;
   state.answers = [];
+  state.isReviewMode = false;
   showScreen("quiz");
   renderQuestion();
 });
 
-modalCloseBtn.addEventListener("click", closeModal);
-
 helpBtn.addEventListener("click", showHelp);
 aboutBtn.addEventListener("click", showAbout);
 
-if (modalCloseBtn) {
-  modalCloseBtn.addEventListener("click", closeModal);
+if (questionMapBtn) {
+  questionMapBtn.addEventListener("click", openQuestionMap);
 }
+
+modalCloseBtn.addEventListener("click", closeModal);
+
+appModal.addEventListener("click", (event) => {
+  if (event.target === appModal) {
+    closeModal();
+  }
+});
+
+document.addEventListener("keydown", handleKeyboardNavigation);
+
+document.addEventListener("pointermove", () => {
+  document.body.classList.remove("using-keyboard");
+});
+
+document.addEventListener("mousedown", () => {
+  document.body.classList.remove("using-keyboard");
+});
+
+/* =========================
+   Carga de archivo
+========================= */
 
 function handleFileUpload(event) {
   const file = event.target.files[0];
@@ -87,11 +114,10 @@ function handleFileUpload(event) {
       validateQuiz(quiz);
       startQuiz(quiz);
     } catch (error) {
-  console.error(error);
-  showModal(
-  "Archivo no válido",
-  "<p>El archivo JSON no tiene el formato esperado.</p>"
-);
+      showModal(
+        "Archivo no válido",
+        "<p>El archivo JSON no tiene el formato esperado.</p>"
+      );
     }
   };
 
@@ -100,8 +126,12 @@ function handleFileUpload(event) {
 }
 
 function validateQuiz(quiz) {
-  if (!quiz.title || !Array.isArray(quiz.questions)) {
+  if (!quiz || !quiz.title || !Array.isArray(quiz.questions)) {
     throw new Error("Formato de cuestionario inválido.");
+  }
+
+  if (quiz.questions.length === 0) {
+    throw new Error("El cuestionario no tiene preguntas.");
   }
 
   quiz.questions.forEach((question) => {
@@ -118,13 +148,40 @@ function validateQuiz(quiz) {
     if (question.type !== "single") {
       throw new Error("De momento solo se admiten preguntas single.");
     }
+
+    if (question.options.length < 2) {
+      throw new Error("Cada pregunta debe tener al menos dos opciones.");
+    }
+
+    if (question.correct.length !== 1) {
+      throw new Error("Cada pregunta single debe tener una sola respuesta correcta.");
+    }
+
+    const optionIds = question.options.map((option) => option.id);
+
+    question.options.forEach((option) => {
+      if (!option.id || !option.text) {
+        throw new Error("Formato de opción inválido.");
+      }
+    });
+
+    question.correct.forEach((correctId) => {
+      if (!optionIds.includes(correctId)) {
+        throw new Error("La respuesta correcta no existe entre las opciones.");
+      }
+    });
   });
 }
+
+/* =========================
+   Cuestionario
+========================= */
 
 function startQuiz(quiz) {
   state.quiz = quiz;
   state.currentIndex = 0;
   state.answers = [];
+  state.isReviewMode = false;
 
   showScreen("quiz");
   renderQuestion();
@@ -138,12 +195,17 @@ function renderQuestion() {
   questionCounter.textContent = `${state.currentIndex + 1} / ${state.quiz.questions.length}`;
   questionStatement.textContent = question.statement;
 
+  if (questionMapBtn) {
+    questionMapBtn.classList.toggle("hidden", !state.isReviewMode);
+  }
+
   optionsContainer.innerHTML = "";
 
-  question.options.forEach((option) => {
+  question.options.forEach((option, index) => {
     const button = document.createElement("button");
     button.className = "option-btn";
     button.textContent = `${option.id.toUpperCase()}. ${option.text}`;
+    button.dataset.optionIndex = index;
 
     if (savedAnswer) {
       button.disabled = true;
@@ -205,6 +267,10 @@ function goToNextQuestion() {
   renderQuestion();
 }
 
+/* =========================
+   Resumen
+========================= */
+
 function showSummary() {
   const correct = state.answers.filter((answer) => answer.isCorrect).length;
   const incorrect = state.answers.length - correct;
@@ -222,22 +288,200 @@ function showSummary() {
   showScreen("summary");
 }
 
-function showScreen(screenName) {
-  Object.values(screens).forEach((screen) => screen.classList.add("hidden"));
-  screens[screenName].classList.remove("hidden");
+/* =========================
+   Mapa de preguntas
+========================= */
+
+function openQuestionMap() {
+  const mapHtml = `
+    <p class="question-map-intro">
+      Selecciona una pregunta para revisarla directamente.
+    </p>
+
+    <div class="question-map-grid">
+      ${state.quiz.questions
+        .map((question, index) => {
+          const answer = getSavedAnswer(question.id);
+
+          const resultClass = answer && answer.isCorrect
+            ? "question-map-correct"
+            : "question-map-incorrect";
+
+          const currentClass = index === state.currentIndex
+            ? "question-map-current"
+            : "";
+
+          return `
+            <button
+              type="button"
+              class="question-map-btn ${resultClass} ${currentClass}"
+              data-index="${index}"
+              aria-label="Ir a la pregunta ${index + 1}"
+            >
+              ${index + 1}
+            </button>
+          `;
+        })
+        .join("")}
+    </div>
+
+    <div class="question-map-legend">
+      <span><i class="legend-dot legend-correct"></i> Acertada</span>
+      <span><i class="legend-dot legend-incorrect"></i> Fallada</span>
+    </div>
+  `;
+
+  showModal("Mapa de preguntas", mapHtml);
+
+  modalContent.querySelectorAll(".question-map-btn").forEach((button) => {
+    button.addEventListener("click", () => {
+      goToQuestion(Number(button.dataset.index));
+    });
+  });
 }
 
-function getCurrentQuestion() {
-  return state.quiz.questions[state.currentIndex];
+function goToQuestion(index) {
+  state.currentIndex = index;
+  closeModal();
+  showScreen("quiz");
+  renderQuestion();
 }
 
-function getSavedAnswer(questionId) {
-  return state.answers.find((answer) => answer.questionId === questionId);
+/* =========================
+   Navegación con teclado
+========================= */
+
+function handleKeyboardNavigation(event) {
+  const keyboardKeys = [
+    "ArrowUp",
+    "ArrowDown",
+    "ArrowLeft",
+    "ArrowRight",
+    "Enter"
+  ];
+
+  if (keyboardKeys.includes(event.key)) {
+    document.body.classList.add("using-keyboard");
+  }
+
+  if (event.key === "Escape") {
+    if (isModalOpen()) {
+      closeModal();
+    }
+
+    return;
+  }
+
+  if (isModalOpen() || !isQuizVisible()) {
+    return;
+  }
+
+  if (shouldIgnoreKeyboardEvent(event)) {
+    return;
+  }
+
+  if (event.key === "ArrowUp") {
+    event.preventDefault();
+    focusOption("previous");
+    return;
+  }
+
+  if (event.key === "ArrowDown") {
+    event.preventDefault();
+    focusOption("next");
+    return;
+  }
+
+  if (event.key === "Enter") {
+    const activeElement = document.activeElement;
+
+    if (
+      activeElement &&
+      activeElement.classList.contains("option-btn") &&
+      !activeElement.disabled
+    ) {
+      event.preventDefault();
+      activeElement.click();
+    }
+
+    return;
+  }
+
+  if (event.key === "ArrowLeft") {
+    event.preventDefault();
+
+    if (!prevBtn.disabled) {
+      goToPreviousQuestion();
+    }
+
+    return;
+  }
+
+  if (event.key === "ArrowRight") {
+    event.preventDefault();
+
+    if (!nextBtn.disabled) {
+      goToNextQuestion();
+    }
+  }
 }
 
-function isLastQuestion() {
-  return state.currentIndex === state.quiz.questions.length - 1;
+function focusOption(direction) {
+  const question = getCurrentQuestion();
+  const savedAnswer = getSavedAnswer(question.id);
+
+  if (savedAnswer) {
+    return;
+  }
+
+  const optionButtons = Array.from(
+    optionsContainer.querySelectorAll(".option-btn:not(:disabled)")
+  );
+
+  if (optionButtons.length === 0) {
+    return;
+  }
+
+  const activeIndex = optionButtons.findIndex(
+    (button) => button === document.activeElement
+  );
+
+  let nextIndex;
+
+  if (activeIndex === -1) {
+    nextIndex = direction === "previous"
+      ? optionButtons.length - 1
+      : 0;
+  } else if (direction === "previous") {
+    nextIndex = activeIndex === 0
+      ? optionButtons.length - 1
+      : activeIndex - 1;
+  } else {
+    nextIndex = activeIndex === optionButtons.length - 1
+      ? 0
+      : activeIndex + 1;
+  }
+
+  optionButtons[nextIndex].focus();
 }
+
+function shouldIgnoreKeyboardEvent(event) {
+  const tagName = event.target.tagName;
+
+  return ["INPUT", "TEXTAREA", "SELECT"].includes(tagName);
+}
+
+function isQuizVisible() {
+  return screens.quiz && !screens.quiz.classList.contains("hidden");
+}
+
+function isModalOpen() {
+  return appModal && !appModal.classList.contains("hidden");
+}
+
+/* =========================
+   Modal
+========================= */
 
 function showModal(title, content) {
   if (!appModal || !modalTitle || !modalContent) {
@@ -255,6 +499,10 @@ function closeModal() {
     appModal.classList.add("hidden");
   }
 }
+
+/* =========================
+   Ayuda / Acerca de
+========================= */
 
 function showHelp() {
   showModal(
@@ -345,4 +593,25 @@ function showAbout() {
       </p>
     `
   );
+}
+
+/* =========================
+   Utilidades
+========================= */
+
+function showScreen(screenName) {
+  Object.values(screens).forEach((screen) => screen.classList.add("hidden"));
+  screens[screenName].classList.remove("hidden");
+}
+
+function getCurrentQuestion() {
+  return state.quiz.questions[state.currentIndex];
+}
+
+function getSavedAnswer(questionId) {
+  return state.answers.find((answer) => answer.questionId === questionId);
+}
+
+function isLastQuestion() {
+  return state.currentIndex === state.quiz.questions.length - 1;
 }
