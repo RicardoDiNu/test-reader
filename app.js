@@ -27,9 +27,21 @@ const correctCount = document.getElementById("correct-count");
 const incorrectCount = document.getElementById("incorrect-count");
 const totalCount = document.getElementById("total-count");
 const scorePercent = document.getElementById("score-percent");
+const scoreMain = document.getElementById("score-main");
+const scoreRing = document.getElementById("score-ring");
 
 const reviewBtn = document.getElementById("review-btn");
 const repeatBtn = document.getElementById("repeat-btn");
+
+const appModal = document.getElementById("app-modal");
+const modalMessage = document.getElementById("modal-message");
+const modalCloseBtn = document.getElementById("modal-close-btn");
+
+const helpBtn = document.getElementById("help-btn");
+const aboutBtn = document.getElementById("about-btn");
+
+const modalTitle = document.getElementById("modal-title");
+const modalContent = document.getElementById("modal-content");
 
 openFileBtn.addEventListener("click", () => fileInput.click());
 startOpenFileBtn.addEventListener("click", () => fileInput.click());
@@ -53,6 +65,15 @@ repeatBtn.addEventListener("click", () => {
   renderQuestion();
 });
 
+modalCloseBtn.addEventListener("click", closeModal);
+
+helpBtn.addEventListener("click", showHelp);
+aboutBtn.addEventListener("click", showAbout);
+
+if (modalCloseBtn) {
+  modalCloseBtn.addEventListener("click", closeModal);
+}
+
 function handleFileUpload(event) {
   const file = event.target.files[0];
 
@@ -66,8 +87,11 @@ function handleFileUpload(event) {
       validateQuiz(quiz);
       startQuiz(quiz);
     } catch (error) {
-      alert("El archivo JSON no tiene el formato esperado.");
-      console.error(error);
+  console.error(error);
+  showModal(
+  "Archivo no válido",
+  "<p>El archivo JSON no tiene el formato esperado.</p>"
+);
     }
   };
 
@@ -190,7 +214,10 @@ function showSummary() {
   correctCount.textContent = correct;
   incorrectCount.textContent = incorrect;
   totalCount.textContent = total;
+
+  scoreMain.textContent = `${correct}/${total}`;
   scorePercent.textContent = `${percent}%`;
+  scoreRing.style.setProperty("--score", percent);
 
   showScreen("summary");
 }
@@ -210,4 +237,112 @@ function getSavedAnswer(questionId) {
 
 function isLastQuestion() {
   return state.currentIndex === state.quiz.questions.length - 1;
+}
+
+function showModal(title, content) {
+  if (!appModal || !modalTitle || !modalContent) {
+    alert(`${title}\n\n${content.replace(/<[^>]*>/g, "")}`);
+    return;
+  }
+
+  modalTitle.textContent = title;
+  modalContent.innerHTML = content;
+  appModal.classList.remove("hidden");
+}
+
+function closeModal() {
+  if (appModal) {
+    appModal.classList.add("hidden");
+  }
+}
+
+function showHelp() {
+  showModal(
+    "Ayuda",
+    `
+      <p>
+        Esta aplicación permite abrir un archivo JSON con preguntas tipo test
+        y practicar respondiéndolas una a una.
+      </p>
+
+      <h3>Formato del archivo JSON</h3>
+
+      <p>El archivo debe tener esta estructura:</p>
+
+      <pre><code>{
+  "title": "Demo - Uso de la app",
+  "questions": [
+    {
+      "id": "q1",
+      "statement": "¿Qué tipo de archivo abrirá esta app?",
+      "type": "single",
+      "options": [
+        {
+          "id": "a",
+          "text": "Un archivo JSON"
+        },
+        {
+          "id": "b",
+          "text": "Un archivo PDF"
+        }
+      ],
+      "correct": ["a"]
+    }
+  ]
+}</code></pre>
+
+      <h3>Campos obligatorios</h3>
+
+      <ul>
+        <li><strong>title</strong>: nombre del cuestionario.</li>
+        <li><strong>questions</strong>: lista de preguntas.</li>
+        <li><strong>id</strong>: identificador único de la pregunta.</li>
+        <li><strong>statement</strong>: enunciado.</li>
+        <li><strong>type</strong>: de momento, usa <code>single</code>.</li>
+        <li><strong>options</strong>: respuestas posibles.</li>
+        <li><strong>correct</strong>: lista con la respuesta correcta.</li>
+      </ul>
+
+      <p>
+        Aunque ahora solo haya una respuesta correcta, <code>correct</code>
+        se guarda como lista para permitir respuestas múltiples en el futuro.
+      </p>
+    `
+  );
+}
+
+function showAbout() {
+  showModal(
+    "Acerca de",
+    `
+      <div class="about-author-box">
+        <p class="about-author-label">Autor</p>
+        <p class="about-author-name">Ricardo Díaz Núñez</p>
+
+        <a
+          class="about-github-link"
+          href="https://github.com/RicardoDiNu"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          github.com/RicardoDiNu
+        </a>
+      </div>
+
+      <p>
+        <strong>Multiple-Choice Test Reader</strong> es una aplicación sencilla
+        para practicar cuestionarios tipo test a partir de archivos JSON.
+      </p>
+
+      <p>
+        No usa base de datos, no guarda tus preguntas en ningún servidor y
+        funciona como lector local de cuestionarios.
+      </p>
+
+      <p>
+        Pensada para estudiar de forma rápida, cómoda y visual desde ordenador,
+        tablet o móvil.
+      </p>
+    `
+  );
 }

@@ -22,7 +22,7 @@
     <section id="start-screen" class="screen">
       <div class="card start-card">
         <h1>Multiple-Choice Test Reader</h1>
-        <p>Abre un archivo JSON para empezar a practicar.</p>
+        <p>Abre un archivo JSON para empezar a practicar</p>
         <button id="start-open-file-btn" class="primary-btn">Abrir cuestionario</button>
       </div>
     </section>
@@ -49,32 +49,56 @@
     </section>
 
     <section id="summary-screen" class="screen hidden">
-      <div class="card summary-card">
-        <h2>Cuestionario completado</h2>
+  <div class="card summary-card">
+    <h2 class="summary-heading">¡Cuestionario completado!</h2>
 
-        <div class="summary-grid">
-          <p>Correctas</p>
-          <strong id="correct-count"></strong>
-
-          <p>Incorrectas</p>
-          <strong id="incorrect-count"></strong>
-
-          <p>Total</p>
-          <strong id="total-count"></strong>
-
-          <p>Porcentaje</p>
-          <strong id="score-percent"></strong>
-        </div>
-
-        <div class="summary-actions">
-          <button id="review-btn">Revisar cuestionario</button>
-          <button id="repeat-btn">Repetir cuestionario</button>
-          <button id="new-quiz-btn" class="primary-btn">Abrir nuevo cuestionario</button>
+    <div class="summary-panel">
+      <div class="summary-visual">
+        <div id="score-ring" class="score-ring" style="--score: 0;">
+          <div class="score-ring-inner">
+            <strong id="score-main"></strong>
+            <span id="score-percent"></span>
+          </div>
         </div>
       </div>
-    </section>
+
+      <div class="summary-stats">
+        <div class="summary-stat-row">
+          <span>Correctas</span>
+          <strong id="correct-count" class="stat-correct"></strong>
+        </div>
+
+        <div class="summary-stat-row">
+          <span>Incorrectas</span>
+          <strong id="incorrect-count" class="stat-incorrect"></strong>
+        </div>
+
+        <div class="summary-stat-row">
+          <span>Total</span>
+          <strong id="total-count"></strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="summary-actions">
+      <button id="review-btn">Revisar cuestionario</button>
+      <button id="repeat-btn">Repetir cuestionario</button>
+      <button id="new-quiz-btn" class="primary-btn">Abrir nuevo cuestionario</button>
+    </div>
+  </div>
+</section>
 
   </main>
+
+<div id="app-modal" class="modal hidden">
+  <div class="modal-card">
+    <h2 id="modal-title">Multiple-Choice Test Reader</h2>
+
+    <div id="modal-content" class="modal-content"></div>
+
+    <button id="modal-close-btn" class="primary-btn" type="button">Aceptar</button>
+  </div>
+</div>
 
   <script src="app.js"></script>
 </body>
