@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multiple-Choice Test Reader</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+    <header class="app-header">
+    <div class="header-inner">
+        <button id="open-file-btn" class="header-btn">Abrir</button>
+        <button id="help-btn" class="header-btn">Ayuda</button>
+        <button id="about-btn" class="header-btn">Acerca de</button>
+        <input type="file" id="file-input" accept=".json,application/json" hidden />
+    </div>
+    </header>
+
+  <main class="app-main">
+
+    <section id="start-screen" class="screen">
+      <div class="card start-card">
+        <h1>Multiple-Choice Test Reader</h1>
+        <p>Abre un archivo JSON para empezar a practicar.</p>
+        <button id="start-open-file-btn" class="primary-btn">Abrir cuestionario</button>
+      </div>
+    </section>
+
+    <section id="quiz-screen" class="screen hidden">
+      <div class="quiz-layout">
+
+        <div class="quiz-top">
+          <p id="quiz-title" class="quiz-title"></p>
+          <p id="question-counter" class="question-counter"></p>
+        </div>
+
+        <article class="card question-card">
+          <h2 id="question-statement"></h2>
+          <div id="options-container" class="options-container"></div>
+        </article>
+
+        <div class="navigation">
+          <button id="prev-btn">Anterior</button>
+          <button id="next-btn" disabled>Siguiente</button>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="summary-screen" class="screen hidden">
+      <div class="card summary-card">
+        <h2>Cuestionario completado</h2>
+
+        <div class="summary-grid">
+          <p>Correctas</p>
+          <strong id="correct-count"></strong>
+
+          <p>Incorrectas</p>
+          <strong id="incorrect-count"></strong>
+
+          <p>Total</p>
+          <strong id="total-count"></strong>
+
+          <p>Porcentaje</p>
+          <strong id="score-percent"></strong>
+        </div>
+
+        <div class="summary-actions">
+          <button id="review-btn">Revisar cuestionario</button>
+          <button id="repeat-btn">Repetir cuestionario</button>
+          <button id="new-quiz-btn" class="primary-btn">Abrir nuevo cuestionario</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

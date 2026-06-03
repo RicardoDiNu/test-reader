@@ -1,0 +1,53 @@
+{
+  "title": "Demo - Uso de la app",
+  "questions": [
+    {
+      "id": "q1",
+      "statement": "¿Qué tipo de archivo abrirá esta app para cargar un cuestionario?",
+      "type": "single",
+      "options": [
+        {
+          "id": "a",
+          "text": "Un archivo JSON"
+        },
+        {
+          "id": "b",
+          "text": "Un archivo PDF"
+        },
+        {
+          "id": "c",
+          "text": "Un archivo de imagen"
+        },
+        {
+          "id": "d",
+          "text": "Un archivo de audio"
+        }
+      ],
+      "correct": ["a"]
+    },
+    {
+      "id": "q2",
+      "statement": "¿Dónde estará guardado realmente el banco de preguntas?",
+      "type": "single",
+      "options": [
+        {
+          "id": "a",
+          "text": "En una base de datos online"
+        },
+        {
+          "id": "b",
+          "text": "En los archivos que yo prepare"
+        },
+        {
+          "id": "c",
+          "text": "En GitHub automáticamente"
+        },
+        {
+          "id": "d",
+          "text": "En el navegador de otra persona"
+        }
+      ],
+      "correct": ["b"]
+    }
+  ]
+}

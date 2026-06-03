@@ -1,2 +1,2 @@
 # test-reader
-Multiple-Choice test reader
+Multiple-Choice Test Reader
