@@ -1,4 +1,5 @@
 const state = {
+  originalQuiz: null,
   quiz: null,
   currentIndex: 0,
   answers: [],
@@ -37,6 +38,7 @@ const scoreMain = document.getElementById("score-main");
 const scoreRing = document.getElementById("score-ring");
 
 const reviewBtn = document.getElementById("review-btn");
+const repeatFailedBtn = document.getElementById("repeat-failed-btn");
 const repeatBtn = document.getElementById("repeat-btn");
 
 const appModal = document.getElementById("app-modal");
@@ -64,12 +66,10 @@ reviewBtn.addEventListener("click", () => {
   renderQuestion();
 });
 
+repeatFailedBtn.addEventListener("click", repeatFailedQuestions);
+
 repeatBtn.addEventListener("click", () => {
-  state.currentIndex = 0;
-  state.answers = [];
-  state.isReviewMode = false;
-  showScreen("quiz");
-  renderQuestion();
+  startQuizAttempt(state.originalQuiz.questions);
 });
 
 helpBtn.addEventListener("click", showHelp);
@@ -178,7 +178,16 @@ function validateQuiz(quiz) {
 ========================= */
 
 function startQuiz(quiz) {
-  state.quiz = quiz;
+  state.originalQuiz = quiz;
+  startQuizAttempt(quiz.questions);
+}
+
+function startQuizAttempt(questions) {
+  state.quiz = {
+    ...state.originalQuiz,
+    questions
+  };
+
   state.currentIndex = 0;
   state.answers = [];
   state.isReviewMode = false;
@@ -285,7 +294,29 @@ function showSummary() {
   scorePercent.textContent = `${percent}%`;
   scoreRing.style.setProperty("--score", percent);
 
+  repeatFailedBtn.classList.toggle("hidden", incorrect === 0);
+  
   showScreen("summary");
+}
+
+function repeatFailedQuestions() {
+  const failedQuestionIds = state.answers
+    .filter((answer) => !answer.isCorrect)
+    .map((answer) => answer.questionId);
+
+  if (failedQuestionIds.length === 0) {
+    showModal(
+      "Sin preguntas falladas",
+      "<p>No hay preguntas falladas para repetir.</p>"
+    );
+    return;
+  }
+
+  const failedQuestions = state.quiz.questions.filter((question) =>
+    failedQuestionIds.includes(question.id)
+  );
+
+  startQuizAttempt(failedQuestions);
 }
 
 /* =========================

@@ -81,11 +81,18 @@
     </div>
 
     <div class="summary-actions">
-      <button id="review-btn">Revisar cuestionario</button>
-      <button id="repeat-btn">Repetir cuestionario</button>
-      <button id="new-quiz-btn" class="primary-btn">Abrir nuevo cuestionario</button>
+      <button id="review-btn" type="button">Revisar cuestionario</button>
+
+      <button id="repeat-failed-btn" type="button" class="hidden">
+        Repetir solo incorrectas
+      </button>
+
+      <button id="repeat-btn" type="button">Repetir cuestionario</button>
+
+      <button id="new-quiz-btn" class="primary-btn" type="button">
+        Abrir nuevo cuestionario
+      </button>
     </div>
-  </div>
 </section>
 
   </main>
