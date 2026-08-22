@@ -70,9 +70,21 @@ button {
   height: 100%;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
   gap: 0.5rem;
   padding: 0 1.25rem;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .header-btn {
@@ -417,7 +429,7 @@ body.using-keyboard .option-btn:hover:not(:disabled) {
 .modal {
   position: fixed;
   inset: 0;
-  z-index: 100;
+  z-index: 9999 !important;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -457,6 +469,7 @@ body.using-keyboard .option-btn:hover:not(:disabled) {
 .modal-content {
   color: var(--text-muted);
   line-height: 1.55;
+  text-align: center;
 }
 
 .modal-content h3 {
@@ -645,6 +658,163 @@ body.using-keyboard .option-btn:hover:not(:disabled) {
 }
 
 /* =========================
+   Menú Usuario y Panel Cloud
+========================= */
+
+.user-menu-container {
+  position: relative;
+  display: inline-block;
+}
+
+.user-dropdown-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.dropdown-arrow {
+  font-size: 0.7rem;
+}
+
+.user-dropdown-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  background-color: #1a1a1a;
+  min-width: 140px;
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+  border-radius: 6px;
+  border: 1px solid #333;
+  overflow: hidden;
+  margin-top: 5px;
+}
+
+.dropdown-logout-btn {
+  width: 100%;
+  text-align: left;
+  padding: 10px 15px;
+  background: none;
+  border: none;
+  color: #ff5555;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.dropdown-logout-btn:hover {
+  background-color: rgba(255, 85, 85, 0.1);
+}
+
+/* Panel Cloud */
+.cloud-card {
+  text-align: center;
+}
+
+.cloud-section {
+  margin-bottom: 20px;
+}
+
+.cloud-section h1 {
+  font-size: 1.8rem;
+  margin-bottom: 10px;
+}
+
+.cloud-subtitle {
+  font-size: 1rem;
+  color: #a0aec0;
+  margin-bottom: 20px;
+}
+
+.compact-btn {
+  padding: 10px 30px;
+  width: auto;
+  display: inline-block;
+}
+
+.cloud-divider {
+  margin: 20px 0;
+  border: 0;
+  border-top: 1px solid #2d3748;
+}
+
+/* Modal de Filtros */
+.config-modal-card {
+  max-width: 500px;
+  border-radius: 12px;
+  background-color: #181b22;
+  border: 1px solid #2d3748;
+  color: #fff;
+}
+
+.config-modal-title {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+}
+
+.config-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+  color: #cbd5e0;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #2d3748;
+  background-color: #111318;
+  color: #fff;
+  font-size: 0.95rem;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  border-color: #6366f1;
+}
+
+.form-select {
+  cursor: pointer;
+}
+
+.config-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.btn-cancel-app {
+  flex: 1;
+  background-color: #742a2a !important;
+  border: none;
+  cursor: pointer;
+  text-align: center;
+  justify-content: center;
+}
+
+.btn-cancel-app:hover {
+  background-color: #9b2c2c !important;
+}
+
+.btn-submit-app {
+  flex: 1;
+  border: none;
+  cursor: pointer;
+  text-align: center;
+  justify-content: center;
+}
+
+/* =========================
    Móvil
 ========================= */
 
@@ -766,4 +936,34 @@ body.using-keyboard .option-btn:hover:not(:disabled) {
   .question-map-btn {
     border-radius: 10px;
   }
+}
+
+/* =========================
+   Modal
+========================= */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(10, 14, 20, 0.72);
+  backdrop-filter: blur(6px);
+}
+
+.modal.hidden {
+  display: none;
+}
+
+/* Forzamos que el modal de configuración esté por debajo */
+#config-modal {
+  z-index: 1000 !important;
+}
+
+/* Forzamos que el modal de avisos y alertas esté siempre en la capa más alta absoluta */
+#app-modal {
+  z-index: 9999 !important; 
 }

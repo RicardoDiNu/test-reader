@@ -10,15 +10,37 @@
 
   <header class="app-header">
     <div class="header-inner">
-      <button id="open-file-btn" class="header-btn">Abrir</button>
-      <button id="help-btn" class="header-btn">Ayuda</button>
-      <button id="about-btn" class="header-btn">Acerca de</button>
-      <input type="file" id="file-input" accept=".json,application/json" hidden />
+      
+      <!-- Botones de la izquierda -->
+      <div class="header-left">
+        <button id="open-file-btn" class="header-btn">Abrir</button>
+        <button id="help-btn" class="header-btn">Ayuda</button>
+        <button id="about-btn" class="header-btn">Acerca de</button>
+        <input type="file" id="file-input" accept=".json,application/json" hidden />
+      </div>
+
+      <!-- Zona de Login / Usuario a la derecha -->
+      <div class="header-right">
+        <button id="btn-login" class="header-btn">Iniciar sesión</button>
+
+        <div id="user-menu-container" class="hidden user-menu-container">
+          <button id="user-dropdown-btn" class="header-btn user-dropdown-btn">
+            <span id="user-info">Usuario</span>
+            <span class="dropdown-arrow">▼</span>
+          </button>
+          
+          <div id="user-dropdown-menu" class="user-dropdown-menu">
+            <button id="btn-logout" class="dropdown-logout-btn">Cerrar sesión</button>
+          </div>
+        </div>
+      </div>
+
     </div>
   </header>
 
   <main class="app-main">
-
+    
+    <!-- 1. Pantalla de inicio anónima (Local) -->
     <section id="start-screen" class="screen">
       <div class="card start-card">
         <h1>Multiple-Choice Test Reader</h1>
@@ -27,6 +49,29 @@
       </div>
     </section>
 
+    <!-- 2. Pantalla de panel en la nube (Logueado) -->
+    <section id="cloud-dashboard-screen" class="screen hidden">
+      <div class="card start-card cloud-card">
+        
+        <div class="cloud-section">
+          <h1>Sincronizar Base de Datos</h1>
+          <p class="cloud-subtitle">Sube tu archivo CSV actualizado para volcar o actualizar preguntas en Firebase</p>
+          <button id="sync-csv-btn" class="primary-btn compact-btn">Sincronizar</button>
+          <input type="file" id="csv-file-input" accept=".csv" hidden />
+        </div>
+
+        <hr class="cloud-divider">
+
+        <div class="cloud-section">
+          <h1>Crear cuestionario</h1>
+          <p class="cloud-subtitle">Filtra por bloque, tema, origen o estado de aciertos</p>
+          <button id="open-config-modal-btn" class="primary-btn compact-btn">Crear</button>
+        </div>
+        
+      </div>
+    </section>
+
+    <!-- 3. Pantalla de ejecución del Test -->
     <section id="quiz-screen" class="screen hidden">
       <div class="quiz-layout">
 
@@ -48,65 +93,100 @@
       </div>
     </section>
 
+    <!-- 4. Pantalla de Resumen -->
     <section id="summary-screen" class="screen hidden">
-  <div class="card summary-card">
-    <h2 class="summary-heading">¡Cuestionario completado!</h2>
+      <div class="card summary-card">
+        <h2 class="summary-heading">¡Cuestionario completado!</h2>
 
-    <div class="summary-panel">
-      <div class="summary-visual">
-        <div id="score-ring" class="score-ring" style="--score: 0;">
-          <div class="score-ring-inner">
-            <strong id="score-main"></strong>
-            <span id="score-percent"></span>
+        <div class="summary-panel">
+          <div class="summary-visual">
+            <div id="score-ring" class="score-ring" style="--score: 0;">
+              <div class="score-ring-inner">
+                <strong id="score-main"></strong>
+                <span id="score-percent"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="summary-stats">
+            <div class="summary-stat-row">
+              <span>Correctas</span>
+              <strong id="correct-count" class="stat-correct"></strong>
+            </div>
+
+            <div class="summary-stat-row">
+              <span>Incorrectas</span>
+              <strong id="incorrect-count" class="stat-incorrect"></strong>
+            </div>
+
+            <div class="summary-stat-row">
+              <span>Total</span>
+              <strong id="total-count"></strong>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="summary-stats">
-        <div class="summary-stat-row">
-          <span>Correctas</span>
-          <strong id="correct-count" class="stat-correct"></strong>
-        </div>
-
-        <div class="summary-stat-row">
-          <span>Incorrectas</span>
-          <strong id="incorrect-count" class="stat-incorrect"></strong>
-        </div>
-
-        <div class="summary-stat-row">
-          <span>Total</span>
-          <strong id="total-count"></strong>
+        <div class="summary-actions">
+          <button id="review-btn" type="button">Revisar cuestionario</button>
+          <button id="repeat-failed-btn" type="button" class="hidden">Repetir solo incorrectas</button>
+          <button id="repeat-btn" type="button">Repetir cuestionario</button>
+          <button id="new-quiz-btn" class="primary-btn" type="button">Crear nuevo cuestionario</button>
         </div>
       </div>
-    </div>
-
-    <div class="summary-actions">
-      <button id="review-btn" type="button">Revisar cuestionario</button>
-
-      <button id="repeat-failed-btn" type="button" class="hidden">
-        Repetir solo incorrectas
-      </button>
-
-      <button id="repeat-btn" type="button">Repetir cuestionario</button>
-
-      <button id="new-quiz-btn" class="primary-btn" type="button">
-        Abrir nuevo cuestionario
-      </button>
-    </div>
-</section>
+    </section>
 
   </main>
 
-<div id="app-modal" class="modal hidden">
-  <div class="modal-card">
-    <h2 id="modal-title">Multiple-Choice Test Reader</h2>
-
-    <div id="modal-content" class="modal-content"></div>
-
-    <button id="modal-close-btn" class="primary-btn" type="button">Aceptar</button>
+  <!-- Modal genérico existente -->
+  <div id="app-modal" class="modal hidden">
+    <div class="modal-card">
+      <h2 id="modal-title">Multiple-Choice Test Reader</h2>
+      <div id="modal-content" class="modal-content"></div>
+      <button id="modal-close-btn" class="primary-btn" type="button">Aceptar</button>
+    </div>
   </div>
-</div>
 
-  <script src="app.js"></script>
+  <!-- Modal para Parametrizar el Test -->
+  <div id="config-modal" class="modal hidden">
+    <div class="modal-card config-modal-card">
+      <h2 class="config-modal-title">Filtros del Cuestionario</h2>
+      
+      <form id="quiz-filters-form" class="config-form">
+        
+        <div class="form-group">
+          <label for="filter-bloque">Bloque:</label>
+          <input type="number" id="filter-bloque" min="1" max="4" placeholder="Ej: 3 (vacío para todos)" class="form-input">
+        </div>
+
+        <div class="form-group">
+          <label for="filter-tema">Tema:</label>
+          <input type="number" id="filter-tema" min="1" max="100" placeholder="Ej: 13 (vacío para todos)" class="form-input">
+        </div>
+
+        <div class="form-group">
+          <label for="filter-origen">Origen:</label>
+          <select id="filter-origen" class="form-input form-select">
+            <option value="">Cualquier origen</option>
+            <option value="ia">IA</option>
+            <option value="examen">Examen</option>
+            <option value="profesor">Profesor</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="filter-porcentaje">Porcentaje de aciertos (máximo):</label>
+          <input type="number" id="filter-porcentaje" min="0" max="100" placeholder="Ej: 50 (preguntas con <= 50% de aciertos)" class="form-input">
+        </div>
+
+        <div class="config-actions">
+          <button type="button" id="close-config-btn" class="primary-btn btn-cancel-app">Cancelar</button>
+          <button type="submit" class="primary-btn btn-submit-app">Crear</button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
 </body>
 </html>
