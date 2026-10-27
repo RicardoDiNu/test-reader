@@ -94,7 +94,10 @@ async function processCsvFile(file) {
     let contadorSubidas = 0;
 
     try {
-      showModal("Sincronizando...", "<p>Subiendo preguntas a tu base de datos</p>");
+      showModal("Sincronizando...", "<p>Subiendo preguntas en bloques optimizados...</p>");
+
+      let batch = writeBatch(db);
+      let operationsInBatch = 0;
 
       for (let i = 1; i < rows.length; i++) {
         const row = rows[i];
@@ -113,7 +116,8 @@ async function processCsvFile(file) {
 
         const questionRef = doc(db, "preguntas", questionId);
 
-        await setDoc(questionRef, {
+        // Añadimos la operación al lote actual en memoria
+        batch.set(questionRef, {
           id: questionId,
           origen: origenVal,
           bloque: bloqueNum,
@@ -126,10 +130,23 @@ async function processCsvFile(file) {
           opcion_correcta: opcionCorrectaVal
         }, { merge: true });
 
+        operationsInBatch++;
         contadorSubidas++;
+
+        // Firestore permite un máximo de 500 operaciones por lote (batch)
+        if (operationsInBatch === 450) {
+          await batch.commit(); // Enviamos el paquete de golpe
+          batch = writeBatch(db); // Creamos un nuevo lote para las siguientes
+          operationsInBatch = 0;
+        }
       }
 
-      showModal("¡Sincronización Exitosa!", `<p>Se han subido y formateado correctamente <strong>${contadorSubidas}</strong> preguntas</p>`);
+      // Si quedan operaciones pendientes que no llenaron un lote de 450, las enviamos
+      if (operationsInBatch > 0) {
+        await batch.commit();
+      }
+
+      showModal("¡Sincronización Exitosa!", `<p>Se han subido y actualizado correctamente <strong>${contadorSubidas}</strong> preguntas a la velocidad de la luz</p>`);
     } catch (error) {
       console.error("Error al subir CSV:", error);
       showModal("Error", `<p>Hubo un problema al volcar los datos: ${error.message}</p>`);
