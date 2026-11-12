@@ -49,10 +49,20 @@
       </div>
     </section>
 
-    <!-- 2. Pantalla de panel en la nube (Logueado) -->
+   <!-- 2. Pantalla de panel en la nube (Logueado) -->
     <section id="cloud-dashboard-screen" class="screen hidden">
       <div class="card start-card cloud-card">
-        
+
+        <div class="cloud-section">
+          <label for="collection-selector" class="cloud-subtitle" style="display: block; margin-bottom: 8px;">Colección activa en Firebase:</label>
+          <select id="collection-selector" class="bg-gray-800 text-white border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500" style="width: 100%; max-width: 320px; background-color: #1f2937; color: #ffffff; border: 1px solid #4b5563; padding: 10px; border-radius: 8px; cursor: pointer; text-align: center; text-align-last: center;">
+            <option value="preguntas">preguntas (Original)</option>
+            <option value="preguntas_optimizadas">preguntas_optimizadas (Nueva)</option>
+          </select>
+        </div>
+
+        <hr class="cloud-divider">
+                
         <div class="cloud-section">
           <h1>Sincronizar Base de Datos</h1>
           <p class="cloud-subtitle">Sube tu archivo CSV actualizado para volcar o actualizar preguntas en Firebase</p>
@@ -70,7 +80,7 @@
         
       </div>
     </section>
-
+    
     <!-- 3. Pantalla de ejecución del Test -->
     <section id="quiz-screen" class="screen hidden">
       <div class="quiz-layout">

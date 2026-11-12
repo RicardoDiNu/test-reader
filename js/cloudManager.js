@@ -1,4 +1,4 @@
-// cloudManager.js - Gestión de Firebase (Sincronización CSV, Filtros y Registro en Tiempo Real)
+// cloudManager.js - Gestión dinámica de Colecciones Firebase
 
 import { startQuiz, showModal, closeModal } from "./quizEngine.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -16,12 +16,37 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// Función auxiliar para obtener la colección activa seleccionada por el usuario
+function getActiveCollectionName() {
+  const selector = document.getElementById("collection-selector");
+  if (selector) {
+    const selected = selector.value;
+    localStorage.setItem("active_firebase_collection", selected); // Lo guardamos en memoria
+    return selected;
+  }
+  return localStorage.getItem("active_firebase_collection") || "preguntas_optimizadas";
+}
+
 // ==========================================
 // INICIALIZACIÓN DE EVENTOS DEL PANEL CLOUD
 // ==========================================
 export function initCloudManager() {
   const syncCsvBtn = document.getElementById("sync-csv-btn");
   const csvFileInput = document.getElementById("csv-file-input");
+  const collectionSelector = document.getElementById("collection-selector");
+
+  // Recuperar última colección seleccionada si existe
+  if (collectionSelector) {
+    const savedCollection = localStorage.getItem("active_firebase_collection");
+    if (savedCollection) {
+      collectionSelector.value = savedCollection;
+    }
+
+    collectionSelector.addEventListener("change", () => {
+      const activeCol = getActiveCollectionName();
+      console.log(`Colección activa cambiada a: ${activeCol}`);
+    });
+  }
 
   if (syncCsvBtn && csvFileInput) {
     syncCsvBtn.addEventListener("click", () => csvFileInput.click());
@@ -77,9 +102,10 @@ function parseCSV(strData) {
 }
 
 // ==========================================
-// PROCESAMIENTO Y SUBIDA A FIRESTORE
+// PROCESAMIENTO Y SUBIDA A LA COLECCIÓN ACTIVA
 // ==========================================
 async function processCsvFile(file) {
+  const activeCollection = getActiveCollectionName();
   const reader = new FileReader();
 
   reader.onload = async function (e) {
@@ -94,7 +120,7 @@ async function processCsvFile(file) {
     let contadorSubidas = 0;
 
     try {
-      showModal("Sincronizando...", "<p>Subiendo preguntas en bloques optimizados...</p>");
+      showModal("Sincronizando...", `<p>Subiendo preguntas a <strong>${activeCollection}</strong>...</p>`);
 
       let batch = writeBatch(db);
       let operationsInBatch = 0;
@@ -114,9 +140,8 @@ async function processCsvFile(file) {
         const opcionD = row[8] ? row[8].trim() : "";
         const opcionCorrectaVal = row[9] ? row[9].trim().toLowerCase() : "a";
 
-        const questionRef = doc(db, "preguntas", questionId);
+        const questionRef = doc(db, activeCollection, questionId);
 
-        // Añadimos la operación al lote actual en memoria
         batch.set(questionRef, {
           id: questionId,
           origen: origenVal,
@@ -133,20 +158,18 @@ async function processCsvFile(file) {
         operationsInBatch++;
         contadorSubidas++;
 
-        // Firestore permite un máximo de 500 operaciones por lote (batch)
         if (operationsInBatch === 450) {
-          await batch.commit(); // Enviamos el paquete de golpe
-          batch = writeBatch(db); // Creamos un nuevo lote para las siguientes
+          await batch.commit();
+          batch = writeBatch(db);
           operationsInBatch = 0;
         }
       }
 
-      // Si quedan operaciones pendientes que no llenaron un lote de 450, las enviamos
       if (operationsInBatch > 0) {
         await batch.commit();
       }
 
-      showModal("¡Sincronización Exitosa!", `<p>Se han subido y actualizado correctamente <strong>${contadorSubidas}</strong> preguntas a la velocidad de la luz</p>`);
+      showModal("¡Sincronización Exitosa!", `<p>Se han subido correctamente <strong>${contadorSubidas}</strong> preguntas a <strong>${activeCollection}</strong></p>`);
     } catch (error) {
       console.error("Error al subir CSV:", error);
       showModal("Error", `<p>Hubo un problema al volcar los datos: ${error.message}</p>`);
@@ -157,18 +180,19 @@ async function processCsvFile(file) {
 }
 
 // ==========================================
-// CONSULTA FILTRADA Y CREACIÓN DEL TEST
+// CONSULTA FILTRADA DESDE LA COLECCIÓN ACTIVA
 // ==========================================
 async function fetchFilteredQuizFromFirebase() {
+  const activeCollection = getActiveCollectionName();
   const bloqueVal = document.getElementById("filter-bloque").value;
   const temaVal = document.getElementById("filter-tema").value;
   const origenVal = document.getElementById("filter-origen").value;
   const porcentajeMaxVal = document.getElementById("filter-porcentaje").value;
 
   try {
-    showModal("Generando Test", "<p>Buscando preguntas en la nube</p>");
+    showModal("Generando Test", `<p>Buscando preguntas en <strong>${activeCollection}</strong></p>`);
 
-    let qRef = collection(db, "preguntas");
+    let qRef = collection(db, activeCollection);
     let condiciones = [];
 
     if (bloqueVal !== "") condiciones.push(where("bloque", "==", Number(bloqueVal)));
@@ -208,14 +232,14 @@ async function fetchFilteredQuizFromFirebase() {
     });
 
     if (preguntasArray.length === 0) {
-      showModal("Sin resultados", "<p>No hay preguntas que coincidan con los filtros seleccionados</p>");
+      showModal("Sin resultados", `<p>No hay preguntas en <strong>${activeCollection}</strong> que coincidan con los filtros</p>`);
       return;
     }
 
     preguntasArray.sort(() => Math.random() - 0.5);
 
     const cuestionarioPersonalizado = {
-      title: `Test Personalizado (Bloque: ${bloqueVal || 'Todos'}, Tema: ${temaVal || 'Todos'})`,
+      title: `Test (${activeCollection}) - Bloque: ${bloqueVal || 'Todos'}, Tema: ${temaVal || 'Todos'}`,
       questions: preguntasArray
     };
 
@@ -232,12 +256,13 @@ async function fetchFilteredQuizFromFirebase() {
 }
 
 // ==========================================
-// REGISTRAR RESPUESTA EN TIEMPO REAL
+// REGISTRAR RESPUESTA EN LA COLECCIÓN ACTIVA
 // ==========================================
 export async function registrarRespuestaEnFirebase(questionId, isCorrect) {
   if (!questionId) return;
   
-  const questionRef = doc(db, "preguntas", questionId);
+  const activeCollection = getActiveCollectionName();
+  const questionRef = doc(db, activeCollection, questionId);
 
   try {
     if (isCorrect) {
